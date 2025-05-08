@@ -58,7 +58,7 @@ gunzip FileS2.gz
 
 # Getting the Mouse Data
 
-Get the mouse genome from: https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/ 
+Get the mouse genome from. Note that you need to download each chromsome separately, and then the mouse.py file will combine them all into a dataset: https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/ 
 
 ```
 curl ftp://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/mm10.fa.gz --output mm10.fa.gz 
