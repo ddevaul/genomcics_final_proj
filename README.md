@@ -58,7 +58,7 @@ gunzip FileS2.gz
 
 # Getting the Mouse Data
 
-Get the mouse genome from. Note that you need to download each chromsome separately, and then the mouse.py file will combine them all into a dataset: https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/ 
+Get the mouse genome from: https://hgdownload.soe.ucsc.edu/goldenPath/mm10/chromosomes/ 
 
 ```
 curl ftp://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/mm10.fa.gz --output mm10.fa.gz 
@@ -103,7 +103,7 @@ python process_da_rat.py  rn6.fa GSE163474_allMergedRatHotspots.finalTable.tab F
 
 # Processing Mouse Data
 ```
-python process_da_mouse.py mm10.fa GSE163474_allMergedRatHotspots.finalTable.tab FileS2 rat_hotspots
+Start with 
 ```
 
 # Running experiments
@@ -115,6 +115,11 @@ python calculate_features.py
 and then for training you can run
 ```
 python rf_classifier.py -i <inputfile> -o <outputfile>
+```
+or 
+
+``` 
+python xg_classifier.py -i <inputfile> -o <outputfile>
 ```
 
 the input file is going to end with something like "with_dinucleotides_and_motifs.tsv" e.g. rat_hotspots_1.2hot_with_dinucleotides_and_motifs.tsv. 
