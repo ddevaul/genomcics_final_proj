@@ -102,8 +102,9 @@ python process_da_rat.py  rn6.fa GSE163474_allMergedRatHotspots.finalTable.tab F
 
 
 # Processing Mouse Data
+use process_da_mouse.py
 ```
-Start with 
+python process_da_mouse.py 
 ```
 
 # Running experiments
