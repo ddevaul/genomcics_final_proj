@@ -159,55 +159,209 @@ class RecombinationRateClassifier:
         
         return X_new
     
-    def prepare_data(self, X, y, test_size=0.2):
-        """Split data and prepare for training"""
-        # Check class distribution
-        class_counts = pd.Series(y).value_counts()
-        total_samples = len(y)
-        print("\nClass distribution in full dataset:")
-        print(class_counts)
-        print("\nClass proportions in full dataset:")
-        print(class_counts / total_samples)
+    # def prepare_data(self, X, y, test_size=0.2):
+    #     """Split data and prepare for training, applying SMOTE only to training data"""
+    #     # Check original class distribution
+    #     class_counts = pd.Series(y).value_counts()
+    #     total_samples = len(y)
+    #     print("\nClass distribution in full dataset:")
+    #     print(class_counts)
+    #     print("\nClass proportions in full dataset:")
+    #     print(class_counts / total_samples)
         
-        # Handle NaN values before SMOTE
+    #     # First split the data before applying SMOTE
+    #     X_train, X_test, y_train, y_test = train_test_split(
+    #         X, y, test_size=test_size, random_state=self.random_state, stratify=y
+    #     )
+        
+    #     print(f"\nTraining set shape before SMOTE: {X_train.shape}")
+    #     print(f"Test set shape: {X_test.shape}")
+        
+    #     # Handle missing values in the training data
+    #     print("\nHandling NaN values before SMOTE...")
+    #     imputer = SimpleImputer(strategy='median')
+    #     X_train_imputed = pd.DataFrame(
+    #         imputer.fit_transform(X_train),
+    #         columns=X_train.columns,
+    #         index=X_train.index
+    #     )
+        
+    #     # Verify no NaN values remain
+    #     nan_count = X_train_imputed.isna().sum().sum()
+    #     print(f"NaN values after imputation: {nan_count}")
+        
+    #     # Apply SMOTE only to the training data
+    #     print("\nApplying SMOTE for class balancing on training data only...")
+    #     smote = SMOTE(random_state=self.random_state)
+    #     X_train_balanced, y_train_balanced = smote.fit_resample(X_train_imputed, y_train)
+        
+    #     print("\nClass distribution in training set after SMOTE balancing:")
+    #     print(pd.Series(y_train_balanced).value_counts())
+    #     print("\nClass proportions in training set after SMOTE balancing:")
+    #     print(pd.Series(y_train_balanced).value_counts(normalize=True))
+        
+    #     print("\nClass distribution in test set (unchanged):")
+    #     print(pd.Series(y_test).value_counts())
+    #     print("\nClass proportions in test set (unchanged):")
+    #     print(pd.Series(y_test).value_counts(normalize=True))
+        
+    #     print(f"\nTraining set shape after SMOTE: {X_train_balanced.shape}")
+        
+    #     # Store the splits
+    #     self.X_train = X_train_balanced
+    #     self.X_test = X_test
+    #     self.y_train = y_train_balanced
+    #     self.y_test = y_test
+        
+    #     return X_train_balanced, X_test, y_train_balanced, y_test
+    
+    def prepare_data(self, X, y, test_size=0.2):
+        """Split data and prepare for training, applying SMOTE only to training data"""
+        # First split the data to keep test set with original distribution
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=self.random_state, stratify=y
+        )
+        
+        print(f"\nTraining set shape before SMOTE: {X_train.shape}")
+        print(f"Test set shape (original distribution): {X_test.shape}")
+        
+        # Check class distribution in training set
+        train_class_counts = pd.Series(y_train).value_counts()
+        print("\nClass distribution in training set before SMOTE:")
+        print(train_class_counts)
+        print("\nClass proportions in training set before SMOTE:")
+        print(train_class_counts / len(y_train))
+        
+        # Check class distribution in test set
+        test_class_counts = pd.Series(y_test).value_counts()
+        print("\nClass distribution in test set (unchanged):")
+        print(test_class_counts)
+        print("\nClass proportions in test set (unchanged):")
+        print(test_class_counts / len(y_test))
+        
+        # Handle missing values in the training data
         print("\nHandling NaN values before SMOTE...")
         imputer = SimpleImputer(strategy='median')
-        X_imputed = pd.DataFrame(
-            imputer.fit_transform(X),
-            columns=X.columns,
-            index=X.index
+        X_train_imputed = pd.DataFrame(
+            imputer.fit_transform(X_train),
+            columns=X_train.columns,
+            index=X_train.index
         )
         
         # Verify no NaN values remain
-        nan_count = X_imputed.isna().sum().sum()
+        nan_count = X_train_imputed.isna().sum().sum()
         print(f"NaN values after imputation: {nan_count}")
         
-        # Use SMOTE for oversampling
-        print("\nApplying SMOTE for class balancing...")
+        # Apply SMOTE only to the training data
+        print("\nApplying SMOTE for class balancing on training data only...")
         smote = SMOTE(random_state=self.random_state)
-        X_balanced, y_balanced = smote.fit_resample(X_imputed, y)
+        X_train_balanced, y_train_balanced = smote.fit_resample(X_train_imputed, y_train)
         
-        print("\nClass distribution after SMOTE balancing:")
-        print(pd.Series(y_balanced).value_counts())
-        print("\nClass proportions after SMOTE balancing:")
-        print(pd.Series(y_balanced).value_counts(normalize=True))
+        # Convert X_train_balanced to DataFrame with original column names
+        X_train_balanced = pd.DataFrame(X_train_balanced, columns=X_train.columns)
         
-        # Split the balanced data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_balanced, y_balanced, test_size=test_size, random_state=self.random_state, stratify=y_balanced
-        )
+        print("\nClass distribution in training set after SMOTE balancing:")
+        print(pd.Series(y_train_balanced).value_counts())
+        print("\nClass proportions in training set after SMOTE balancing:")
+        print(pd.Series(y_train_balanced).value_counts(normalize=True))
         
-        print(f"\nTraining set shape: {X_train.shape}")
-        print(f"Test set shape: {X_test.shape}")
+        print(f"\nTraining set shape after SMOTE: {X_train_balanced.shape}")
         
         # Store the splits
-        self.X_train = X_train
+        self.X_train = X_train_balanced
         self.X_test = X_test
-        self.y_train = y_train
+        self.y_train = y_train_balanced
         self.y_test = y_test
         
-        return X_train, X_test, y_train, y_test
-    
+        return X_train_balanced, X_test, y_train_balanced, y_test
+
+    #     """Split data and prepare for training, with balanced real test set"""
+    #     # Check original class distribution
+    #     class_counts = pd.Series(y).value_counts()
+    #     total_samples = len(y)
+    #     print("\nClass distribution in full dataset:")
+    #     print(class_counts)
+    #     print("\nClass proportions in full dataset:")
+    #     print(class_counts / total_samples)
+        
+    #     # Get indices for each class
+    #     minority_class = class_counts.idxmin()
+    #     majority_class = class_counts.idxmax()
+        
+    #     minority_indices = np.where(y == minority_class)[0]
+    #     majority_indices = np.where(y == majority_class)[0]
+        
+    #     # Calculate how many samples to include in test set from each class
+    #     # We'll use an equal number based on the minority class size and test_size
+    #     minority_test_size = int(len(minority_indices) * test_size)
+        
+    #     # Create stratified test set with equal class representation
+    #     # Take samples from minority class
+    #     minority_test_indices = np.random.choice(
+    #         minority_indices, 
+    #         size=minority_test_size, 
+    #         replace=False
+    #     )
+        
+    #     # Take the same number of samples from majority class
+    #     majority_test_indices = np.random.choice(
+    #         majority_indices, 
+    #         size=minority_test_size, 
+    #         replace=False
+    #     )
+        
+    #     # Combine to create balanced test set indices
+    #     test_indices = np.concatenate([minority_test_indices, majority_test_indices])
+        
+    #     # All remaining indices go to training set
+    #     train_indices = np.array([i for i in range(len(y)) if i not in test_indices])
+        
+    #     # Create train/test split
+    #     X_train, X_test = X.iloc[train_indices], X.iloc[test_indices]
+    #     y_train, y_test = y.iloc[train_indices], y.iloc[test_indices]
+        
+    #     print(f"\nTraining set shape before SMOTE: {X_train.shape}")
+    #     print(f"Test set shape (balanced with real examples): {X_test.shape}")
+        
+    #     # Check test set distribution
+    #     print("\nClass distribution in balanced real test set:")
+    #     print(pd.Series(y_test).value_counts())
+    #     print("\nClass proportions in balanced real test set:")
+    #     print(pd.Series(y_test).value_counts(normalize=True))
+        
+    #     # Handle missing values in the training data
+    #     print("\nHandling NaN values before SMOTE...")
+    #     imputer = SimpleImputer(strategy='median')
+    #     X_train_imputed = pd.DataFrame(
+    #         imputer.fit_transform(X_train),
+    #         columns=X_train.columns,
+    #         index=X_train.index
+    #     )
+        
+    #     # Verify no NaN values remain
+    #     nan_count = X_train_imputed.isna().sum().sum()
+    #     print(f"NaN values after imputation: {nan_count}")
+        
+    #     # Apply SMOTE only to the training data
+    #     print("\nApplying SMOTE for class balancing on training data only...")
+    #     smote = SMOTE(random_state=self.random_state)
+    #     X_train_balanced, y_train_balanced = smote.fit_resample(X_train_imputed, y_train)
+        
+    #     print("\nClass distribution in training set after SMOTE balancing:")
+    #     print(pd.Series(y_train_balanced).value_counts())
+    #     print("\nClass proportions in training set after SMOTE balancing:")
+    #     print(pd.Series(y_train_balanced).value_counts(normalize=True))
+        
+    #     print(f"\nTraining set shape after SMOTE: {X_train_balanced.shape}")
+        
+    #     # Store the splits
+    #     self.X_train = X_train_balanced
+    #     self.X_test = X_test
+    #     self.y_train = y_train_balanced
+    #     self.y_test = y_test
+        
+    #     return X_train_balanced, X_test, y_train_balanced, y_test
+
     def train_model(self, X_train, y_train, n_iter=5, cv=3):
         """Train an XGBoost classifier with optimized parameters"""
         print("Training XGBoost classifier...")
